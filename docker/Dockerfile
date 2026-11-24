@@ -5,6 +5,7 @@ FROM osrf/ros:lyrical-desktop
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ros-lyrical-simulation \
         novnc \
+        xvfb \
         x11vnc \
         websockify \
         supervisor \

@@ -5,7 +5,7 @@ services:
     network_mode: host
     ipc: host
     environment:
-      DISPLAY: ":0"             # Xvfb inside the container
+      DISPLAY: ":99"            # Xvfb inside the container (:0/:1 held by host X)
       QT_QPA_PLATFORM: xcb      # Qt apps (RViz, gz gui) on Xvfb
       ROS_DOMAIN_ID: "42"
     volumes:
