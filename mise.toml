@@ -1,0 +1,23 @@
+[tools]
+uv = "latest"
+
+[tasks.setup]
+description = "Install Python dependencies into project-local .venv"
+run = "uv sync"
+
+[tasks.demo]
+description = "Run the headless two-link arm simulation"
+depends = ["setup"]
+run = "uv run scripts/hello_arm.py"
+
+[tasks.sim-up]
+description = "Build and start ROS 2 + Gazebo container (noVNC at http://localhost:6080)"
+run = "docker compose -f docker/compose.yaml up --build -d"
+
+[tasks.sim-down]
+description = "Stop the ROS 2 + Gazebo container"
+run = "docker compose -f docker/compose.yaml down"
+
+[tasks.sim-shell]
+description = "Open a shell inside the running ROS 2 container"
+run = "docker compose -f docker/compose.yaml exec ros bash"

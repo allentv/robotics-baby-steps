@@ -1,0 +1,14 @@
+services:
+  ros:
+    build: .
+    # ROS 2 DDS discovery needs multicast, which the default bridge blocks.
+    network_mode: host
+    ipc: host
+    environment:
+      DISPLAY: ":0"             # Xvfb inside the container
+      QT_QPA_PLATFORM: xcb      # Qt apps (RViz, gz gui) on Xvfb
+      ROS_DOMAIN_ID: "42"
+    volumes:
+      - ..:/workspace
+    working_dir: /workspace
+    command: ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]
