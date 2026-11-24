@@ -11,6 +11,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         supervisor \
     && rm -rf /var/lib/apt/lists/*
 
+# Ubuntu's novnc package ships no index.html, so http://localhost:6080/ would
+# show a bare directory listing instead of the noVNC client.
+RUN ln -s vnc.html /usr/share/novnc/index.html
+
 COPY supervisord.conf /etc/supervisor/conf.d/novnc.conf
 
 EXPOSE 6080
