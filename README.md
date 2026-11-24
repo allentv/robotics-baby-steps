@@ -5,7 +5,7 @@ Sandbox for learning robotics with zero global pollution. Two independent paths 
 - **Path A — MuJoCo physics lab** (default): everything lives in a project-local `uv` virtualenv. No Docker, no apt, no `/opt`.
 - **Path B — ROS 2 + Gazebo**: one container with a browser-accessible desktop (noVNC), so the GUI never touches your host session.
 
-## Path A: MuJoCo (headless physics)
+## Path A: MuJoCo physics lab
 
 Tool versions and tasks are managed by [mise](https://mise.jdx.dev) (`mise.toml`):
 
@@ -21,9 +21,24 @@ Without mise, plain [`uv`](https://docs.astral.sh/uv/) works identically:
 uv sync && uv run scripts/hello_arm.py
 ```
 
-`scripts/hello_arm.py` steps a headless simulation of `models/two_link_arm.xml`
-(a 2-DOF planar arm) and prints joint angles + end-effector position. No display
-needed, deterministic, runs in well under a second.
+`scripts/hello_arm.py` steps a simulation of `models/two_link_arm.xml`
+(a 2-DOF planar arm) and prints joint angles + end-effector position. Headless
+by default: no display needed, deterministic, runs in well under a second.
+
+Watch it live instead (interactive viewer, real-time playback):
+
+```bash
+uv run scripts/hello_arm.py --viewer               # native window
+uv run scripts/hello_arm.py --viewer --seconds 30  # longer playback
+```
+
+...or watch it on the Path B browser desktop — the project folder is mounted at
+`/workspace` inside the container:
+
+```bash
+python3 -m venv /tmp/mj && /tmp/mj/bin/pip install mujoco   # once per container
+DISPLAY=:99 /tmp/mj/bin/python scripts/hello_arm.py --viewer
+```
 
 Extend from here:
 
@@ -51,8 +66,10 @@ ros2 run turtlesim turtlesim_node                                              #
 ros2 launch ros_gz_sim gz_sim.launch.py gz_args:="empty.sdf"                   # Gazebo
 ```
 
-The container desktop is Xvfb + x11vnc + noVNC (managed by supervisord), so it
-needs nothing from your host display server.
+The browser view opens a real desktop — openbox + an xterm over Xvfb, all
+managed by supervisord — with no dependency on your host display server. The
+first thing you see is a terminal ready for `ros2` commands, and Path A's
+`--viewer` runs there too.
 
 ### Design notes
 
@@ -60,6 +77,9 @@ needs nothing from your host display server.
   default bridge does not pass.
 - noVNC binds `127.0.0.1` only (see `docker/supervisord.conf`); it is never
   exposed off your machine.
+- The virtual display is `:99`, not `:0`: with `network_mode: host` the container
+  shares the host's abstract socket namespace, where the host X server already
+  holds `@/tmp/.X11-unix/X0` and `X1` — Xvfb on `:0` refuses to start there.
 - `ROS_DOMAIN_ID=42` isolates this container's ROS graph from anything else on
   the host.
 - To talk to host-side ROS nodes later, run them with the same `ROS_DOMAIN_ID`.
@@ -69,10 +89,10 @@ needs nothing from your host display server.
 ```
 ├── mise.toml               # tool versions (uv) + task runner
 ├── pyproject.toml          # uv project: mujoco + numpy, nothing global
-├── scripts/hello_arm.py    # Path A entry point (headless)
+├── scripts/hello_arm.py    # Path A entry point (headless or --viewer)
 ├── models/two_link_arm.xml # minimal 2-DOF arm MJCF
 └── docker/                 # Path B: ROS 2 Lyrical + Gazebo + noVNC
     ├── Dockerfile
     ├── compose.yaml
-    └── supervisord.conf    # Xvfb → x11vnc → websockify(noVNC)
+    └── supervisord.conf    # Xvfb :99 → openbox/xterm → x11vnc → noVNC
 ```

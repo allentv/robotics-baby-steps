@@ -14,6 +14,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         x11-xserver-utils \
     && rm -rf /var/lib/apt/lists/*
 
+# venv support for in-desktop Python work (README: pip install mujoco on :99).
+# Separate layer so the big apt layer above stays cached.
+RUN apt-get update && apt-get install -y --no-install-recommends python3.14-venv \
+    && rm -rf /var/lib/apt/lists/*
+
 # Ubuntu's novnc package ships no index.html, so http://localhost:6080/ would
 # show a bare directory listing instead of the noVNC client.
 RUN ln -s vnc.html /usr/share/novnc/index.html
