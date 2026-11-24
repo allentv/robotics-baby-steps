@@ -9,6 +9,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         x11vnc \
         websockify \
         supervisor \
+        openbox \
+        xterm \
+        x11-xserver-utils \
     && rm -rf /var/lib/apt/lists/*
 
 # Ubuntu's novnc package ships no index.html, so http://localhost:6080/ would
